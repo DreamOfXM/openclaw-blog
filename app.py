@@ -1,12 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, abort
 import sqlite3
 import os
-import json
-from datetime import datetime
 import hashlib
 
 app = Flask(__name__)
-# 硬编码secret key，避免环境变量问题
+# 硬编码secret key
 app.secret_key = 'dev-secret-key-for-deployment-2026'
 
 # 数据库配置
@@ -18,9 +16,11 @@ def get_db():
     return conn
 
 def init_db():
-    print("Initializing database...")
+    print("🚀 开始初始化数据库...")
     try:
         db = get_db()
+        
+        # 创建文章表
         db.execute('''
             CREATE TABLE IF NOT EXISTS articles (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,80 +28,74 @@ def init_db():
                 slug TEXT UNIQUE NOT NULL,
                 content TEXT NOT NULL,
                 excerpt TEXT,
-                status TEXT DEFAULT 'published',  # 默认就是已发布
+                status TEXT DEFAULT 'published',
                 visibility TEXT DEFAULT 'public',
-                password_hash TEXT,
                 tags TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        db.commit()
         
-        # 创建默认管理员
-        default_password = hashlib.sha256('openclaw2026'.encode()).hexdigest()
+        # 创建用户表
         db.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
-                role TEXT DEFAULT 'admin',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                role TEXT DEFAULT 'admin'
             )
         ''')
         
-        # 检查是否已有管理员
-        existing = db.execute('SELECT id FROM users WHERE username = ?', ('admin',)).fetchone()
-        if not existing:
-            db.execute('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
-                      ('admin', default_password, 'admin'))
+        db.commit()
+        print("✅ 数据库表创建完成")
+        
+        # 添加默认管理员
+        default_password = hashlib.sha256('openclaw2026'.encode()).hexdigest()
+        db.execute(
+            "INSERT OR IGNORE INTO users (username, password_hash, role) VALUES ('admin', ?, 'admin')",
+            (default_password,)
+        )
+        
+        # 添加测试文章
+        test_article = db.execute("SELECT id FROM articles WHERE slug = 'welcome'").fetchone()
+        if not test_article:
+            db.execute('''
+                INSERT INTO articles (title, slug, content, excerpt, tags)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                '欢迎使用OpenClaw博客系统',
+                'welcome',
+                '<h2>恭喜！您的博客已成功部署</h2><p>这是一个功能完整的博客系统，包含以下特性：</p><ul><li>响应式设计，支持移动设备</li><li>多级权限管理（公开/私密/密码保护）</li><li>管理员后台管理</li><li>文章标签分类</li><li>现代化界面设计</li></ul><h3>下一步建议</h3><p>1. 在管理后台添加更多文章</p><p>2. 自定义博客样式</p><p>3. 配置更多功能</p>',
+                'OpenClaw博客系统已成功部署，具备完整功能',
+                'OpenClaw,博客,技术'
+            ))
+            print("✅ 添加测试文章")
+        
+        # 再添加一篇文章
+        second_article = db.execute("SELECT id FROM articles WHERE slug = 'openclaw-guide'").fetchone()
+        if not second_article:
+            db.execute('''
+                INSERT INTO articles (title, slug, content, excerpt, tags)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                'OpenClaw平台介绍',
+                'openclaw-guide',
+                '<h2>OpenClaw是什么？</h2><p>OpenClaw是一个开源的个人AI助手平台，让你能够部署自己的智能助手，连接你的工具、数据和日常工作流。</p><h2>核心功能</h2><ul><li><strong>多平台集成</strong>：支持Telegram、Discord、微信等</li><li><strong>技能系统</strong>：通过技能扩展功能</li><li><strong>本地部署</strong>：完全掌控数据</li><li><strong>自动化工作流</strong>：智能调度和任务执行</li></ul>',
+                'OpenClaw是一个开源的个人AI助手平台',
+                'AI助手,自动化,开源'
+            ))
+            print("✅ 添加第二篇文章")
         
         db.commit()
-        print("Database tables created successfully")
         
-        # 🚀 关键修复：添加初始文章
-        articles_count = db.execute('SELECT COUNT(*) as count FROM articles').fetchone()['count']
-        print(f"当前文章数量: {articles_count}")
+        # 验证数据
+        article_count = db.execute("SELECT COUNT(*) as count FROM articles").fetchone()['count']
+        user_count = db.execute("SELECT COUNT(*) as count FROM users").fetchone()['count']
         
-        if articles_count == 0:
-            print("添加初始文章...")
-            
-            # 文章1: OpenClaw入门指南
-            db.execute('''
-                INSERT OR IGNORE INTO articles (title, slug, content, excerpt, tags, visibility, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                'OpenClaw入门指南：构建你的AI助手工作流',
-                'openclaw-introduction',
-                '<h2>什么是OpenClaw？</h2><p>OpenClaw是一个开源的个人AI助手平台，让你能够部署自己的智能助手，连接你的工具、数据和日常工作流。</p><h2>核心功能</h2><ul><li><strong>多平台集成</strong>：支持Telegram、Discord、微信等</li><li><strong>工具扩展</strong>：通过技能系统扩展功能</li><li><strong>本地部署</strong>：完全掌控你的数据</li><li><strong>自动化工作流</strong>：智能调度和任务执行</li></ul><h2>快速开始</h2><p>安装OpenClaw只需要几步：<ol><li>安装Node.js环境</li><li>通过npm安装OpenClaw</li><li>配置你的技能和工具</li><li>连接到你喜欢的通讯平台</li></ol></p><h2>技能系统</h2><p>OpenClaw的技能就像手机App，每个技能都提供特定功能：<ul><li><code>weather</code>：天气查询</li><li><code>cron</code>：定时任务</li><li><code>memory</code>：记忆管理</li><li><code>browser</code>：浏览器控制</li></ul></p><blockquote><p>💡 提示：你可以通过ClawHub发现和安装社区技能</p></blockquote><h2>最佳实践</h2><p>1. <strong>从简单开始</strong>：先配置基础功能<br>2. <strong>渐进式扩展</strong>：逐步添加需要的技能<br>3. <strong>定期维护</strong>：更新技能和配置<br>4. <strong>社区参与</strong>：分享你的使用经验</p><h2>资源链接</h2><ul><li>官方网站：<a href=\"https://openclaw.ai\">openclaw.ai</a></li><li>GitHub仓库：<a href=\"https://github.com/openclaw/openclaw\">github.com/openclaw/openclaw</a></li><li>文档：<a href=\"https://docs.openclaw.ai\">docs.openclaw.ai</a></li><li>社区：<a href=\"https://discord.com/invite/clawd\">Discord社区</a></li></ul>',
-                'OpenClaw是一个开源的个人AI助手平台，让你能够部署自己的智能助手，连接你的工具、数据和日常工作流。',
-                'OpenClaw,AI助手,自动化,开源',
-                'public',
-                'published'
-            ))
-            
-            # 文章2: 量化交易系统
-            db.execute('''
-                INSERT OR IGNORE INTO articles (title, slug, content, excerpt, tags, visibility, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                '量化交易系统架构设计',
-                'quant-trading-system',
-                '<h2>系统架构概览</h2><p>一个完整的量化交易系统通常包含以下核心模块：</p><ul><li><strong>数据层</strong>：市场数据收集和存储</li><li><strong>策略层</strong>：交易逻辑和算法</li><li><strong>执行层</strong>：订单管理和风险控制</li><li><strong>监控层</strong>：性能分析和报警</li></ul><h2>关键技术栈</h2><h3>Python生态系统</h3><pre><code class=\"language-python\"># 核心库示例\nimport pandas as pd  # 数据处理\nimport numpy as np   # 数值计算\nimport talib         # 技术指标\nimport backtrader    # 回测框架</code></pre><h3>数据存储方案</h3><ul><li><strong>时序数据库</strong>：InfluxDB for tick数据</li><li><strong>关系数据库</strong>：PostgreSQL for 元数据</li><li><strong>缓存层</strong>：Redis for 实时数据</li></ul><h2>风险控制机制</h2><table><thead><tr><th>风险类型</th><th>控制措施</th><th>阈值</th></tr></thead><tbody><tr><td>最大回撤</td><td>仓位调整</td><td>≤20%</td></tr><tr><td>单日亏损</td><td>停止交易</td><td>≤5%</td></tr><tr><td>集中度风险</td><td>分散投资</td><td>≤15% per asset</td></tr></tbody></table><h2>回测框架设计</h2><p>有效的回测需要避免常见陷阱：</p><ol><li><strong>前瞻性偏差</strong>：确保不使用未来数据</li><li><strong>交易成本</strong>：考虑佣金和滑点</li><li><strong>数据质量</strong>：处理缺失值和异常值</li><li><strong>过拟合风险</strong>：使用交叉验证</li></ol><h2>部署架构</h2><pre><code class=\"language-yaml\"># Docker Compose配置示例\nversion: \'3.8\'\nservices:\n  data-collector:\n    image: python:3.11\n    command: python data_collector.py\n    \n  strategy-engine:\n    image: python:3.11  \n    depends_on:[data-collector]\n    \n  risk-manager:\n    image: python:3.11\n    environment:\n      - MAX_DRAWDOWN=0.20</code></pre><h2>监控和运维</h2><ul><li><strong>性能监控</strong>：Prometheus + Grafana</li><li><strong>日志管理</strong>：ELK Stack</li><li><strong>报警系统</strong>：基于规则的实时报警</li><li><strong>版本控制</strong>：Git + CI/CD</li></ul><h2>学习资源</h2><ul><li><strong>书籍</strong>：《量化交易：如何建立自己的算法交易事业》</li><li><strong>课程</strong>：Coursera \"Machine Learning for Trading\"</li><li><strong>开源项目</strong>：Zipline, Backtrader, QLib</li><li><strong>社区</strong>：QuantConnect, Kaggle</li></ul>',
-                '量化交易系统设计需要综合考虑数据管理、策略开发、风险控制和系统部署等多个方面，建立健壮且可扩展的架构是关键。',
-                '量化交易,Python,金融科技,系统架构',
-                'public',
-                'published'
-            ))
-            
-            db.commit()
-            print("✅ 成功添加2篇初始文章")
-        else:
-            print(f"✅ 数据库已有 {articles_count} 篇文章")
-        
+        print(f"📊 初始化完成：{article_count}篇文章，{user_count}个用户")
         return True
+        
     except Exception as e:
-        print(f"❌ Database init error: {e}")
+        print(f"❌ 数据库初始化错误: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -123,22 +117,25 @@ def hash_password(password):
 def index():
     try:
         db = get_db()
-        # 🚀 关键修复：简化查询，确保能获取文章
         articles = db.execute('''
-            SELECT * FROM articles 
+            SELECT id, title, slug, excerpt, tags, created_at
+            FROM articles 
             WHERE status = 'published'
             ORDER BY created_at DESC
         ''').fetchall()
         
-        print(f"📊 首页查询: 找到 {len(articles)} 篇文章")
-        for article in articles:
-            print(f"  - {article['title']} (visibility: {article['visibility']})")
+        print(f"📄 首页查询：找到 {len(articles)} 篇文章")
+        
+        # 如果没有文章，强制初始化
+        if len(articles) == 0:
+            print("⚠️ 没有文章，重新初始化...")
+            init_db()
+            articles = db.execute("SELECT id, title, slug, excerpt, tags, created_at FROM articles").fetchall()
+            print(f"🔄 重新初始化后：{len(articles)} 篇文章")
         
         return render_template('index.html', articles=articles)
     except Exception as e:
         print(f"❌ 首页错误: {e}")
-        import traceback
-        traceback.print_exc()
         return f"Error loading articles: {e}", 500
 
 @app.route('/post/<slug>')
@@ -150,7 +147,6 @@ def view_post(slug):
         if not article:
             abort(404)
         
-        # 检查权限
         if article['visibility'] == 'private' and not check_auth():
             abort(403)
         elif article['visibility'] == 'password':
@@ -176,13 +172,16 @@ def login():
             if user:
                 session['username'] = user['username']
                 session['role'] = user['role']
+                print(f"✅ 用户 {username} 登录成功")
                 return redirect(url_for('index'))
             else:
-                return render_template('login.html', error='用户名或密码错误')
+                print(f"❌ 登录失败：用户名或密码错误")
+                return render_template('login_safe.html', error='用户名或密码错误')
         except Exception as e:
+            print(f"❌ 登录错误: {e}")
             return f"Login error: {e}", 500
     
-    return render_template('login.html')
+    return render_template('login_safe.html')
 
 @app.route('/logout')
 def logout():
@@ -197,7 +196,6 @@ def admin():
     try:
         db = get_db()
         articles = db.execute('SELECT * FROM articles ORDER BY created_at DESC').fetchall()
-        print(f"管理后台: 找到 {len(articles)} 篇文章")
         return render_template('admin.html', articles=articles)
     except Exception as e:
         return f"Admin error: {e}", 500
@@ -220,18 +218,69 @@ def password_prompt(slug):
     
     return render_template('password_prompt.html', slug=slug)
 
+@app.route('/debug')
+def debug():
+    """数据库诊断页面"""
+    try:
+        db = get_db()
+        
+        # 检查表
+        tables = db.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").fetchall()
+        
+        # 文章表数据
+        articles_count = db.execute("SELECT COUNT(*) as count FROM articles").fetchone()['count']
+        articles = db.execute("SELECT id, title, slug, status, visibility FROM articles ORDER BY id").fetchall()
+        
+        # 用户表数据
+        users_count = db.execute("SELECT COUNT(*) as count FROM users").fetchone()['count']
+        users = db.execute("SELECT id, username, role FROM users ORDER BY id").fetchall()
+        
+        return f'''
+<!DOCTYPE html>
+<html>
+<head><title>数据库诊断</title></head>
+<body style="font-family: monospace; padding: 20px;">
+<h2>📊 数据库诊断页面</h2>
+
+<h3>📁 数据库表：</h3>
+<ul>
+{''.join(f'<li>{table["name"]}</li>' for table in tables)}
+</ul>
+
+<h3>📝 文章表（{articles_count} 篇）：</h3>
+<table border="1" cellpadding="5">
+<tr><th>ID</th><th>标题</th><th>Slug</th><th>状态</th><th>可见性</th></tr>
+{''.join(f'<tr><td>{a["id"]}</td><td>{a["title"]}</td><td>{a["slug"]}</td><td>{a["status"]}</td><td>{a["visibility"]}</td></tr>' for a in articles)}
+</table>
+
+<h3>👤 用户表（{users_count} 个）：</h3>
+<table border="1" cellpadding="5">
+<tr><th>ID</th><th>用户名</th><th>角色</th></tr>
+{''.join(f'<tr><td>{u["id"]}</td><td>{u["username"]}</td><td>{u["role"]}</td></tr>' for u in users)}
+</table>
+
+<p><a href="/">返回首页</a></p>
+</body>
+</html>
+'''
+    except Exception as e:
+        return f"诊断错误: {e}", 500
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 8080))
     host = os.environ.get('HOST', '0.0.0.0')
     
-    print(f"🚀 Starting Flask app on {host}:{port}")
-    print(f"📁 Database file: {DATABASE}")
-    print(f"🔑 App secret key configured")
+    print(f"🚀 启动博客应用 {host}:{port}")
+    print(f"📁 数据库文件: {DATABASE}")
     
-    # 最后检查一次数据库
+    # 最终检查
     db = get_db()
-    count = db.execute('SELECT COUNT(*) as count FROM articles').fetchone()['count']
-    print(f"📊 最终文章数量: {count}")
+    article_count = db.execute("SELECT COUNT(*) as count FROM articles").fetchone()['count']
+    print(f"📊 最终文章数量: {article_count}")
+    
+    if article_count == 0:
+        print("⚠️ 警告：数据库中没有文章，重新初始化...")
+        init_db()
     
     app.run(host=host, port=port, debug=False)

@@ -7,6 +7,9 @@
     <div style="text-align: center; margin-bottom: 2rem;">
         <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
         <h2 style="font-size: 1.5rem; font-weight: 600;">管理员登录</h2>
+        <p style="color: var(--text-light); margin-top: 0.5rem; font-size: 0.9rem;">
+            请输入管理员账号和密码
+        </p>
     </div>
     
     {% if error %}
@@ -19,13 +22,13 @@
         <div class="form-group">
             <label for="username" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">用户名</label>
             <input type="text" id="username" name="username" class="form-input" 
-                   placeholder="请输入用户名" required>
+                   placeholder="请输入用户名" required autocomplete="username">
         </div>
         
         <div class="form-group">
             <label for="password" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">密码</label>
             <input type="password" id="password" name="password" class="form-input" 
-                   placeholder="请输入密码" required>
+                   placeholder="请输入密码" required autocomplete="current-password">
         </div>
         
         <button type="submit" class="btn" style="width: 100%; margin-top: 1.5rem;">
@@ -34,13 +37,9 @@
     </form>
     
     <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); text-align: center;">
-        <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
-            默认管理员账号
+        <p style="color: var(--text-light); font-size: 0.85rem;">
+            管理员账号请联系系统管理员获取
         </p>
-        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; font-family: monospace;">
-            <div style="margin-bottom: 0.5rem;">用户名: <strong>admin</strong></div>
-            <div>密码: <strong>openclaw2026</strong></div>
-        </div>
     </div>
     
     <div style="margin-top: 2rem; text-align: center;">
