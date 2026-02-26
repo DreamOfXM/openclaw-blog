@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} - 说点啥 · 技能笔记{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <article>
+        <header style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem;">{{ article.title }}</h1>
+                    
+                    {% if article.tags %}
+                        <div style="margin-bottom: 1rem;">
+                            {% for tag in article.tags.split(',') %}
+                                <span class="tag">{{ tag.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div style="text-align: right;">
+                    <div style="font-size: 0.9rem; color: var(--text-light);">
+                        <div>发布于 {{ article.created_at[:10] }}</div>
+                        <div style="margin-top: 0.25rem;">
+                            {% if article.visibility == 'public' %}
+                                <span style="color: var(--success);">公开文章</span>
+                            {% elif article.visibility == 'private' %}
+                                <span style="color: var(--warning);">私密文章</span>
+                            {% elif article.visibility == 'password' %}
+                                <span style="color: var(--accent);">密码保护</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if article.excerpt %}
+                <div style="padding: 1rem; background: #f8fafc; border-radius: 8px; margin-bottom: 1rem;">
+                    <p style="color: var(--text-light); font-style: italic;">{{ article.excerpt }}</p>
+                </div>
+            {% endif %}
+        </header>
+        
+        <div class="article-content" style="line-height: 1.8;">
+            {{ article.content|safe }}
+        </div>
+    </article>
+    
+    <div style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">← 返回首页</a>
+            
+            {% if session.username == 'admin' %}
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="{{ url_for('admin') }}" class="btn">管理后台</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .article-content h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 2rem 0 1rem;
+        color: var(--text);
+    }
+    
+    .article-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.75rem;
+        color: var(--text);
+    }
+    
+    .article-content p {
+        margin-bottom: 1rem;
+    }
+    
+    .article-content ul, .article-content ol {
+        margin: 1rem 0 1rem 2rem;
+    }
+    
+    .article-content li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .article-content blockquote {
+        padding: 1rem 1.5rem;
+        background: #f0f9ff;
+        border-left: 4px solid var(--primary);
+        margin: 1.5rem 0;
+        border-radius: 0 8px 8px 0;
+    }
+    
+    .article-content blockquote p {
+        margin: 0;
+        color: #0369a1;
+    }
+    
+    .article-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+    }
+    
+    .article-content th,
+    .article-content td {
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        text-align: left;
+    }
+    
+    .article-content th {
+        background: #f8fafc;
+        font-weight: 600;
+    }
+    
+    .article-content pre {
+        margin: 1.5rem 0;
+    }
+    
+    .article-content code {
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    }
+</style>
+{% endblock %}

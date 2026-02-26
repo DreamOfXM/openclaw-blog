@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}管理后台 - 说点啥 · 技能笔记{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 1.75rem; font-weight: bold; margin-bottom: 0.5rem;">管理后台</h1>
+        <p style="color: var(--text-light);">管理您的博客文章和设置</p>
+    </div>
+    
+    <div class="grid md:grid-cols-4 gap-6 mb-6">
+        <div class="card text-center">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📝</div>
+            <div style="font-size: 2rem; font-weight: bold;">{{ articles|length }}</div>
+            <div style="color: var(--text-light);">文章总数</div>
+        </div>
+        
+        {% set public_count = articles|selectattr('visibility', 'equalto', 'public')|list|length %}
+        <div class="card text-center">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌐</div>
+            <div style="font-size: 2rem; font-weight: bold;">{{ public_count }}</div>
+            <div style="color: var(--text-light);">公开文章</div>
+        </div>
+        
+        {% set private_count = articles|selectattr('visibility', 'equalto', 'private')|list|length %}
+        <div class="card text-center">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔒</div>
+            <div style="font-size: 2rem; font-weight: bold;">{{ private_count }}</div>
+            <div style="color: var(--text-light);">私密文章</div>
+        </div>
+        
+        {% set password_count = articles|selectattr('visibility', 'equalto', 'password')|list|length %}
+        <div class="card text-center">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔑</div>
+            <div style="font-size: 2rem; font-weight: bold;">{{ password_count }}</div>
+            <div style="color: var(--text-light);">密码保护</div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.25rem; font-weight: 600;">文章管理</h2>
+            <button onclick="showNewArticleForm()" class="btn">+ 新建文章</button>
+        </div>
+        
+        {% if articles %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafc; border-bottom: 2px solid var(--border);">
+                            <th style="padding: 0.75rem; text-align: left;">标题</th>
+                            <th style="padding: 0.75rem; text-align: left;">可见性</th>
+                            <th style="padding: 0.75rem; text-align: left;">创建时间</th>
+                            <th style="padding: 0.75rem; text-align: left;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for article in articles %}
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 0.75rem;">
+                                    <div style="font-weight: 500;">{{ article.title }}</div>
+                                    {% if article.slug %}
+                                        <div style="font-size: 0.85rem; color: var(--text-light);">
+                                            /{{ article.slug }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 0.75rem;">
+                                    {% if article.visibility == 'public' %}
+                                        <span style="color: var(--success);">公开</span>
+                                    {% elif article.visibility == 'private' %}
+                                        <span style="color: var(--warning);">私密</span>
+                                    {% elif article.visibility == 'password' %}
+                                        <span style="color: var(--accent);">密码保护</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 0.75rem;">{{ article.created_at[:10] }}</td>
+                                <td style="padding: 0.75rem;">
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <a href="{{ url_for('view_post', slug=article.slug) }}" 
+                                           style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">
+                                            查看
+                                        </a>
+                                        <span style="color: var(--border);">|</span>
+                                        <a href="{{ url_for('logout') }}" 
+                                           style="color: var(--danger); text-decoration: none; font-size: 0.9rem;">
+                                            删除
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                <h3 style="margin-bottom: 0.5rem;">还没有文章</h3>
+                <p style="color: var(--text-light); margin-bottom: 1.5rem;">
+                    创建您的第一篇文章吧！
+                </p>
+                <button onclick="showNewArticleForm()" class="btn">+ 新建文章</button>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">返回首页</a>
+        <a href="{{ url_for('logout') }}" class="btn">退出登录</a>
+    </div>
+</div>
+
+<!-- 新建文章表单（隐藏） -->
+<div id="newArticleForm" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.25rem; font-weight: 600;">新建文章</h2>
+            <button onclick="hideNewArticleForm()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light);">×</button>
+        </div>
+        
+        <div style="color: var(--text-light); margin-bottom: 1.5rem; font-size: 0.9rem;">
+            由于这是演示版本，创建文章功能需要在后续版本中实现。您可以先手动在数据库中添加文章。
+        </div>
+        
+        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <h3 style="font-weight: 600; margin-bottom: 0.5rem;">手动添加文章示例</h3>
+            <pre style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.85rem;">
+INSERT INTO articles (title, slug, content, excerpt, visibility, tags) 
+VALUES (
+    '文章标题',
+    'article-slug',
+    '&lt;h2&gt;文章内容&lt;/h2&gt;&lt;p&gt;这里是文章内容...&lt;/p&gt;',
+    '文章摘要',
+    'public',
+    '标签1,标签2'
+);</pre>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button onclick="hideNewArticleForm()" class="btn btn-secondary">取消</button>
+            <button onclick="alert('创建文章功能将在后续版本中添加')" class="btn">了解</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function showNewArticleForm() {
+    document.getElementById('newArticleForm').style.display = 'flex';
+}
+
+function hideNewArticleForm() {
+    document.getElementById('newArticleForm').style.display = 'none';
+}
+
+// 点击背景关闭表单
+document.getElementById('newArticleForm').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideNewArticleForm();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,8 @@
+{
+  "title": "OpenClaw入门指南：构建你的AI助手工作流",
+  "slug": "openclaw-introduction",
+  "content": "<h2>什么是OpenClaw？</h2><p>OpenClaw是一个开源的个人AI助手平台，让你能够部署自己的智能助手，连接你的工具、数据和日常工作流。</p><h2>核心功能</h2><ul><li><strong>多平台集成</strong>：支持Telegram、Discord、微信等</li><li><strong>工具扩展</strong>：通过技能系统扩展功能</li><li><strong>本地部署</strong>：完全掌控你的数据</li><li><strong>自动化工作流</strong>：智能调度和任务执行</li></ul><h2>快速开始</h2><p>安装OpenClaw只需要几步：<ol><li>安装Node.js环境</li><li>通过npm安装OpenClaw</li><li>配置你的技能和工具</li><li>连接到你喜欢的通讯平台</li></ol></p><h2>技能系统</h2><p>OpenClaw的技能就像手机App，每个技能都提供特定功能：<ul><li><code>weather</code>：天气查询</li><li><code>cron</code>：定时任务</li><li><code>memory</code>：记忆管理</li><li><code>browser</code>：浏览器控制</li></ul></p><blockquote><p>💡 提示：你可以通过ClawHub发现和安装社区技能</p></blockquote><h2>最佳实践</h2><p>1. <strong>从简单开始</strong>：先配置基础功能<br>2. <strong>渐进式扩展</strong>：逐步添加需要的技能<br>3. <strong>定期维护</strong>：更新技能和配置<br>4. <strong>社区参与</strong>：分享你的使用经验</p><h2>资源链接</h2><ul><li>官方网站：<a href='https://openclaw.ai'>openclaw.ai</a></li><li>GitHub仓库：<a href='https://github.com/openclaw/openclaw'>github.com/openclaw/openclaw</a></li><li>文档：<a href='https://docs.openclaw.ai'>docs.openclaw.ai</a></li><li>社区：<a href='https://discord.com/invite/clawd'>Discord社区</a></li></ul>",
+  "excerpt": "OpenClaw是一个开源的个人AI助手平台，让你能够部署自己的智能助手，连接你的工具、数据和日常工作流。",
+  "tags": "OpenClaw,AI助手,自动化,开源",
+  "visibility": "public"
+}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}登录 - 说点啥 · 技能笔记{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 400px; margin: 4rem auto;">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
+        <h2 style="font-size: 1.5rem; font-weight: 600;">管理员登录</h2>
+    </div>
+    
+    {% if error %}
+        <div class="alert alert-error">
+            {{ error }}
+        </div>
+    {% endif %}
+    
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+            <label for="username" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">用户名</label>
+            <input type="text" id="username" name="username" class="form-input" 
+                   placeholder="请输入用户名" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">密码</label>
+            <input type="password" id="password" name="password" class="form-input" 
+                   placeholder="请输入密码" required>
+        </div>
+        
+        <button type="submit" class="btn" style="width: 100%; margin-top: 1.5rem;">
+            登录
+        </button>
+    </form>
+    
+    <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); text-align: center;">
+        <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
+            默认管理员账号
+        </p>
+        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; font-family: monospace;">
+            <div style="margin-bottom: 0.5rem;">用户名: <strong>admin</strong></div>
+            <div>密码: <strong>openclaw2026</strong></div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem; text-align: center;">
+        <a href="{{ url_for('index') }}" style="color: var(--text-light); text-decoration: none;">
+            ← 返回首页
+        </a>
+    </div>
+</div>
+{% endblock %}
